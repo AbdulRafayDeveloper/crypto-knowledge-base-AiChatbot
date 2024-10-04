@@ -1,0 +1,16 @@
+langchain_groq
+langchain
+python-dotenv~=1.0.1
+streamlit
+fastapi
+langchain_huggingface
+langchain_community
+langchain-community~=0.3.1
+langchain-text-splitters~=0.3.0
+bs4
+chromadb
+sentence-transformers~=3.1.1
+tqdm~=4.66.5
+faiss-cpu
+transformers~=4.45.1
+unstructured
