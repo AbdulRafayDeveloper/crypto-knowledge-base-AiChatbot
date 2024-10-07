@@ -1,3 +1,4 @@
+from typing import List
 import requests
 from langchain_community.document_loaders import WebBaseLoader
 from services.groq_llm import llm
@@ -14,35 +15,40 @@ API_URL = f"https://api-sepolia.etherscan.io/api?module=account&action=balance&a
 
 
 class Application:
-    def __init__(self, url):
-        self.url = url
+    def __init__(self, urls: List[str]):
+        self.urls = urls
 
-    def load_documents(self):
-        """Load the documents from the webpage."""
-        loader = WebBaseLoader(self.url)
-        documents = loader.load()
-        return "".join([docs.page_content for docs in documents])
-
-    def answer_question(self, page_data, query):
-        """Generate an answer based on the page data and query."""
-        prompt = prompt_template.format(page_data=page_data, question=query)
-        response = llm.invoke(prompt)
-        return response.content
-
-    def run(self,query):
-        """Run the application, load documents, and generate a response."""
-        page_data = self.load_documents()
+    def process_and_respond(self, query):
+        """
+        Loads documents from each URL, combines the content, and generates a response 
+        based on the combined data and the user query.
+        """
         try:
-            response = self.answer_question(page_data, query)
-            # clean the response using regular expressions
-            response = re.sub(r'\n+', ' ', response)
-            return response
+            # Combine page data from all URLs
+            combined_page_data = ""
+            for url in self.urls:
+                loader = WebBaseLoader(url)
+                documents = loader.load()
+                page_data = "".join([docs.page_content for docs in documents])
+                combined_page_data += page_data + "\n"
+
+            # Save the combined content to a file
+            with open('combined_file.txt', 'w', encoding='UTF-8') as file:
+                file.write(combined_page_data.strip())
+
+            # Prepare the prompt and generate a response
+            prompt = prompt_template.format(
+                page_data=combined_page_data.strip(), question=query)
+            response = llm.invoke(prompt)
+            clean_response = re.sub(r'\n+', ' ', response.content)
+
+            return clean_response
+
         except Exception as e:
             return str(e)  # Return the error message
 
     def __str__(self):
         """Override the string representation of the application."""
-        return f"Application to scrape URL: {self.url}"
-
+        return f"Application to scrape URLs: {', '.join(self.urls)}"
 if __name__ == '__main__':
     pass

@@ -11,18 +11,18 @@ router = APIRouter(
 @router.post("/generate_response", status_code=status.HTTP_200_OK)
 async def generate_response(request: ChatbotRequest):
     try:
-        # Validate URL and Query inputs before processing
-        if not request.url or not request.query:
+        # Validate URLs and query inputs before processing
+        if not request.urls or not request.query:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid input: URL and query are required."
+                detail="Invalid input: URLs and query are required."
             )
 
-        # Initialize the Application class with the given URL
-        app = Application(request.url)
+        # Initialize the Application class with the given list of URLs
+        app = Application(request.urls)
 
         # Generate the response using the query
-        response = app.run(request.query)
+        response = app.process_and_respond(request.query)
 
         # If response is empty or invalid, return an appropriate status
         if not response:
