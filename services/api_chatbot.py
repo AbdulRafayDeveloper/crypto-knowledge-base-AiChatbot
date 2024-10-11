@@ -1,18 +1,20 @@
-import os
-from langchain_core.tools import tool
-from services.groq_llm import llm
-import requests
-from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
+from typing import List, Dict, Any
 from dotenv import load_dotenv
-from typing import List,Dict,Any
+from fastapi.responses import JSONResponse
+from fastapi import HTTPException, status
+import requests
+from services.groq_llm import llm
+from langchain_core.tools import tool
+import os
 load_dotenv()
+from utils.helper_functions import multiple_address_balance
 
-
-WALLET_ADDRESS=os.getenv("WALLET_ADDRESS")
-ETHERSCAN_API_KEY=os.getenv("ETHERSCAN_API_KEY")
+WALLET_ADDRESS = os.getenv("WALLET_ADDRESS")
+ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
 # This tool is also working
+
+
 @tool
 def get_single_address_balance(address: str) -> Dict[str, Any]:
     """
@@ -29,7 +31,8 @@ def get_single_address_balance(address: str) -> Dict[str, Any]:
     response = requests.get(url=API_URL)
     if response.status_code == status.HTTP_200_OK:
         result = response.json()
-        return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+        # return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+        return result
     else:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -42,10 +45,12 @@ def get_single_address_balance(address: str) -> Dict[str, Any]:
 # tool for getting the get_muliple_address_balance.
 
 # Not working giving empty '' Output
+
+
 @tool
-def get_multiple_address_balance(addresses: List[str])->Dict[str,Any]:
+def get_multiple_address_balance(addresses: List[str]) -> Dict[str, Any]:
     """
-    Fetch the Ethereum balance for multiple addresses given by user using the Etherscan API.
+    Fetch the Ethereum balance for multiple addresses given by user in List[str] using the Etherscan API.
     
     Parameters:
     - addresses (List[str]): The list of Ethereum addresses to check the balance for.
@@ -67,13 +72,7 @@ def get_multiple_address_balance(addresses: List[str])->Dict[str,Any]:
 
     if response.status_code == 200:  # Check for successful response
         result = response.json()
-        if result.get("status") == "1":  # API call was successful
-            return JSONResponse(content=result, status_code=status.HTTP_200_OK)
-        else:
-            return {
-                "error": "Error fetching balances.",
-                "message": result.get("message", "Unknown error")
-            }
+        return result
     else:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -108,8 +107,10 @@ def normal_transcation_list(address: str) -> Dict[str, Any]:
                 "message": "An unexpected error occurred while processing your request."
             }
         )
-    
+
 # this tool is also working...
+
+
 @tool
 def get_internal_transactions_by_address(address: str) -> Dict[str, Any]:
     """
@@ -151,6 +152,8 @@ def get_internal_transactions_by_address(address: str) -> Dict[str, Any]:
         )
 
 # This tool is also working.
+
+
 @tool
 def get_internal_transactions_by_hash(txhash: str) -> Dict[str, Any]:
     """
@@ -184,12 +187,15 @@ def get_internal_transactions_by_hash(txhash: str) -> Dict[str, Any]:
             }
         )
 
+
 """
 =======================================
 Get "Internal Transactions" by Block Range
 ========================================
 """
 # This tool is Working
+
+
 @tool
 def get_internal_transactions_by_block_range() -> Dict[str, Any]:
     """
@@ -208,8 +214,7 @@ def get_internal_transactions_by_block_range() -> Dict[str, Any]:
     Raises:
     - HTTPException: Raises an exception if the API call fails or if the response is not successful.
     """
-    API_URL=f"https://api-sepolia.etherscan.io/api?module=account&action=txlistinternal&startblock=484887&endblock=765371&page=1&offset=10&sort=asc&apikey={ETHERSCAN_API_KEY}"
-    
+    API_URL = f"https://api-sepolia.etherscan.io/api?module=account&action=txlistinternal&startblock=484887&endblock=765371&page=1&offset=10&sort=asc&apikey={ETHERSCAN_API_KEY}"
 
     response = requests.get(API_URL)
 
@@ -230,25 +235,17 @@ def get_internal_transactions_by_block_range() -> Dict[str, Any]:
                 "message": "An unexpected error occurred while processing your request."
             }
         )
-        
-        
+
+
 """
 ===========================================================
 Get a list of 'ERC20 - Token Transfer Events' by Address
 ===========================================================
 """
 
-# Not working:
+# This tool is working:
 @tool
-def get_erc20_token_transfer_events(
-    contractaddress: str,
-    address: str,
-    startblock: int = 0,
-    endblock: int = 99999999,
-    page: int = 1,
-    offset: int = 100,
-    sort: str = "asc"
-) -> Dict[str, Any]:
+def get_erc20_token_transfer_events() -> Dict[str, Any]:
     """
     Fetch a list of ERC20 token transfer events for a contractaddress and Specific using the Etherscan API.
 
@@ -267,14 +264,7 @@ def get_erc20_token_transfer_events(
     Raises:
     - HTTPException: Raises an exception if the API call fails or if the response is not successful.
     """
-    API_URL = (
-        f"https://api-sepolia.etherscan.io/api"
-        f"?module=account&action=tokentx"
-        f"&contractaddress={contractaddress}&address={address}"
-        f"&startblock={startblock}&endblock={endblock}"
-        f"&page={page}&offset={offset}&sort={sort}"
-        f"&apikey={ETHERSCAN_API_KEY}"
-    )
+    API_URL = "https://api-sepolia.etherscan.io/api?module=account&action=tokentx&contractaddress=0xa808b14492AC6E33419ac16112154D40D0A4AEBA&address=0x105083929bf9bb22c26cb1777ec92661170d4285&page=1&offset=100&startblock=0&endblock=99999999& sort=asc&apikey=JBHG98JSJI7CRDSECQ6BPQHZHW3A38FPMD"
 
     response = requests.get(API_URL)
 
@@ -295,7 +285,7 @@ def get_erc20_token_transfer_events(
                 "message": "An unexpected error occurred while processing your request."
             }
         )
-        
+
 
 """
 ===========================================================
@@ -304,19 +294,13 @@ Fetch a list of ERC721 token transfer events for a specified address
 """
 
 
-
-# not working
+# This tool is working with no parameters
 @tool
-def get_erc721_token_transfer_events(
-    contractaddress: str,
-    address: str
-):
+def get_erc721_token_transfer_events()->Dict:
     """
     Fetch a list of ERC721 token transfer events for a specified address using the Etherscan API.
 
-    Parameters:
-    - contractaddress (str): The contract address of the ERC721 token.
-    - address (str): The Ethereum address to check for token transfer events.
+    
 
     Returns:
     - dict: A dictionary containing the response from the Etherscan API, including ERC721 token transfer events or an error message.
@@ -326,22 +310,13 @@ def get_erc721_token_transfer_events(
     """
 
     # Construct the API URL in a single f-string
-    API_URL = (
-        f"https://api-sepolia.etherscan.io/api?module=account&action=tokennfttx"
-        f"&contractaddress={contractaddress}&address={address}&startblock=0&endblock=99999999&page=1&offset=100&sort=asc&apikey={ETHERSCAN_API_KEY}"
-    )
+    API_URL = "https://api-sepolia.etherscan.io/api?module=account&action=tokennfttx&contractaddress=0x31225ffF34ebB599D018A22d2430c2e4fdE32eCa&address=0x8a5847fd0e592b058c026c5fdc322aee834b87f5&page=1&offset=100&startblock=0&endblock=99999999&sort=asc&apikey=JBHG98JSJI7CRDSECQ6BPQHZHW3A38FPMD"
 
     response = requests.get(API_URL)
 
     if response.status_code == 200:  # Check for a successful response
         result = response.json()
-        if result.get("status") == "1":  # API call was successful
-            return result
-        else:
-            return {
-                "error": "Error fetching token transfer events.",
-                "message": result.get("message", "Unknown error")
-            }
+        return result
     else:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -350,6 +325,7 @@ def get_erc721_token_transfer_events(
                 "message": "An unexpected error occurred while processing your request."
             }
         )
+
 
 """
 ===========================================================
@@ -410,7 +386,7 @@ def get_mined_blocks_by_address(
 
 
 # bind tools with LLM
-tools=[
+tools = [
     get_single_address_balance,
     get_multiple_address_balance,
     normal_transcation_list,
@@ -420,12 +396,17 @@ tools=[
     get_erc20_token_transfer_events,
     get_mined_blocks_by_address,
     get_erc721_token_transfer_events
-    
-    
-    
+
+
+
 ]
-llm_with_tools=llm.bind_tools(tools)
-
-    
+llm_with_tools = llm.bind_tools(tools)
 
 
+
+
+"""
+Fetch the Ethereum balance for multiple addresses given by user using the Etherscan API.
+Fetch a list of ERC721 token transfer events for a specified address using the Etherscan API.
+
+"""
