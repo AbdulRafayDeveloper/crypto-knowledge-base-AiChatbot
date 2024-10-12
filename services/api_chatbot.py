@@ -5,16 +5,14 @@ from fastapi import HTTPException, status
 import requests
 from services.groq_llm import llm
 from langchain_core.tools import tool
-import os
+import os,re
+from services.prompts import prompt_template
 load_dotenv()
-from utils.helper_functions import multiple_address_balance
-
+from langchain_community.document_loaders import WebBaseLoader
 WALLET_ADDRESS = os.getenv("WALLET_ADDRESS")
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
 # This tool is also working
-
-
 @tool
 def get_single_address_balance(address: str) -> Dict[str, Any]:
     """
@@ -264,7 +262,7 @@ def get_erc20_token_transfer_events() -> Dict[str, Any]:
     Raises:
     - HTTPException: Raises an exception if the API call fails or if the response is not successful.
     """
-    API_URL = "https://api-sepolia.etherscan.io/api?module=account&action=tokentx&contractaddress=0xa808b14492AC6E33419ac16112154D40D0A4AEBA&address=0x105083929bf9bb22c26cb1777ec92661170d4285&page=1&offset=100&startblock=0&endblock=99999999& sort=asc&apikey=JBHG98JSJI7CRDSECQ6BPQHZHW3A38FPMD"
+    API_URL = "https://api-sepolia.etherscan.io/api?module=account&action=tokentx&contractaddress=0xa808b14492AC6E33419ac16112154D40D0A4AEBA&address=0x105083929bf9bb22c26cb1777ec92661170d4285&page=1&offset=100&startblock=0&endblock=99999999&sort=asc&apikey=JBHG98JSJI7CRDSECQ6BPQHZHW3A38FPMD"
 
     response = requests.get(API_URL)
 
@@ -300,8 +298,6 @@ def get_erc721_token_transfer_events()->Dict:
     """
     Fetch a list of ERC721 token transfer events for a specified address using the Etherscan API.
 
-    
-
     Returns:
     - dict: A dictionary containing the response from the Etherscan API, including ERC721 token transfer events or an error message.
 
@@ -309,7 +305,6 @@ def get_erc721_token_transfer_events()->Dict:
     - HTTPException: Raises an exception if the API call fails or if the response is not successful.
     """
 
-    # Construct the API URL in a single f-string
     API_URL = "https://api-sepolia.etherscan.io/api?module=account&action=tokennfttx&contractaddress=0x31225ffF34ebB599D018A22d2430c2e4fdE32eCa&address=0x8a5847fd0e592b058c026c5fdc322aee834b87f5&page=1&offset=100&startblock=0&endblock=99999999&sort=asc&apikey=JBHG98JSJI7CRDSECQ6BPQHZHW3A38FPMD"
 
     response = requests.get(API_URL)

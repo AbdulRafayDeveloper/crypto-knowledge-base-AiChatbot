@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+# from pydantic import BaseModel
 
 
-class ChatRequest(BaseModel):
-    message: str
-class ChatResponse(BaseModel):
-    response: str
+# class ChatRequest(BaseModel):
+#     query:str
+#     message: str
+# class ChatResponse(BaseModel):
+#     response: str

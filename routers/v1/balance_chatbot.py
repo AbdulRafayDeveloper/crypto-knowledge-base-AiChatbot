@@ -3,6 +3,8 @@ from services.prompts import prompt
 from services.api_chatbot import llm_with_tools, tools
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from fastapi import APIRouter, HTTPException, status
+from langchain.memory import ConversationBufferMemory
+memory = ConversationBufferMemory(memory_key='chat_history')
 
 
 # Initialize the agents
@@ -30,6 +32,9 @@ async def chat(request: ChatRequest):
             response_str = ai_message
         else:
             raise ValueError("Unexpected response format from agent_executor")
+        memory.chat_memory.add_user_message(request.message)
+        memory.chat_memory.add_ai_message(response_str)
+        print(memory.load_memory_variables({}))
 
         # Return the response in the correct format
         return ChatResponse(response=response_str)
