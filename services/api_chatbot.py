@@ -150,10 +150,8 @@ def get_internal_transactions_by_address(address: str) -> Dict[str, Any]:
         )
 
 # This tool is also working.
-
-
 @tool
-def get_internal_transactions_by_hash(txhash: str) -> Dict[str, Any]:
+def get_internal_transactions_by_hash(txhash: str):
     """
     Fetch a list of internal transactions for a given Ethereum transaction hash using the Etherscan API.
 
@@ -163,9 +161,16 @@ def get_internal_transactions_by_hash(txhash: str) -> Dict[str, Any]:
     Returns:
     - JSONResponse: A JSON response containing the internal transactions or an error message if the request fails.
     """
-    API_URL = f"https://api-sepolia.etherscan.io/api?module=account&action=txlistinternal&txhash={txhash}&apikey={ETHERSCAN_API_KEY}"
+    url = "https://api-sepolia.etherscan.io/api"
+    params = {
+        'module': 'account',
+        'action': 'txlistinternal',
+        'txhash': txhash,
+        'apikey': ETHERSCAN_API_KEY
+    }
 
-    response = requests.get(url=API_URL)
+   
+    response = requests.get(url=url, params=params)
 
     if response.status_code == 200:  # Check if the request was successful
         result = response.json()
@@ -378,6 +383,115 @@ def get_mined_blocks_by_address(
                 "message": "An unexpected error occurred while processing your request."
             }
         )
+"""
+==============================================================
+Check Contract Execution Status of Transaction
+===============================================================
+"""
+
+@tool
+def check_contract_execution_status(tx_hash)->Dict[str,Any]:
+    """
+    Check the execution status of a transaction on the Sepolia Ethereum network.
+
+    This function interacts with the Etherscan API to retrieve the execution status of a given transaction
+    hash. It checks if the transaction was successful or if it encountered an error during execution.
+
+    Parameters:
+    tx_hash : str
+        The transaction hash (tx_hash) of the Ethereum transaction to check.
+
+    Returns:
+    -------
+    dict
+        A dictionary containing the status and message:
+        - "status": either "Success" if the transaction executed without errors, or "Error" if it failed.
+        - "message": a description of the outcome.
+
+    Raises:
+    ------
+    HTTPException:
+        - If the response status code is not 200, an HTTPException with the respective status code and error message.
+        - If the API response status is not '1', indicating the transaction status could not be fetched.
+        - If any unexpected error occurs during the API request.
+        """
+    url = "https://api-sepolia.etherscan.io/api"
+    params = {
+        'module': 'transaction',
+        'action': 'getstatus',
+        'txhash': tx_hash,
+        'apikey': ETHERSCAN_API_KEY
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        if data['status'] == '1':
+            if data['result']['isError'] == '0':
+                return {"status": "Success", "message": "The transaction executed without errors."}
+            else:
+                return {"status": "Error", "message": "The transaction failed."}
+        else:
+            raise HTTPException(
+                status_code=400, detail="Unable to fetch transaction status.")
+    else:
+        raise HTTPException(status_code=response.status_code,
+                            detail=f"HTTP Error: {response.status_code}")
+        
+
+@tool
+def check_transaction_receipt_status(tx_hash) -> Dict[str, Any]:
+    """
+    Check the receipt status of a transaction on the Sepolia Ethereum network.
+
+    This function interacts with the Etherscan API to retrieve the receipt status of a given transaction
+    hash. It checks if the transaction was successful or if it encountered an error during execution.
+
+    Parameters:
+    ----------
+    tx_hash : str
+        The transaction hash (tx_hash) of the Ethereum transaction to check.
+
+    Returns:
+    -------
+    dict
+        A dictionary containing the status and message:
+        - "status": either "Success" if the transaction receipt indicates success, or "Error" if it failed.
+        - "message": a description of the outcome.
+
+    Raises:
+    ------
+    HTTPException:
+        - If the response status code is not 200, an HTTPException with the respective status code and error message.
+        - If the API response status is not '1', indicating the transaction receipt status could not be fetched.
+        - If any unexpected error occurs during the API request.
+        
+    """
+
+    url = "https://api-sepolia.etherscan.io/api"
+    params = {
+        'module': 'transaction',
+        'action': 'gettxreceiptstatus',
+        'txhash': tx_hash,
+        'apikey': ETHERSCAN_API_KEY
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        if data['status'] == '1':
+            if data['result']['status'] == '1':
+                return {"status": "Success", "message": "The transaction receipt indicates success."}
+            else:
+                return {"status": "Error", "message": "The transaction receipt indicates failure."}
+        else:
+            return {"status": "Error", "message": "Unable to fetch transaction receipt status."}
+    else:
+        return {"status": "HTTP Error", "message": f"HTTP Error: {response.status_code}"}
+
+
 
 
 # bind tools with LLM
@@ -390,7 +504,10 @@ tools = [
     get_internal_transactions_by_block_range,
     get_erc20_token_transfer_events,
     get_mined_blocks_by_address,
-    get_erc721_token_transfer_events
+    get_erc721_token_transfer_events,
+    check_contract_execution_status,
+    check_transaction_receipt_status
+    
 
 
 
