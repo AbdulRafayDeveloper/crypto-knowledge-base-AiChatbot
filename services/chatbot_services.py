@@ -1,11 +1,11 @@
 from typing import List
-import requests
 from langchain_community.document_loaders import WebBaseLoader
 from services.groq_llm import llm
 from services.prompts import prompt_template
 import re
 from dotenv import load_dotenv
 load_dotenv()
+
 
 
 class Application:
@@ -36,8 +36,8 @@ class Application:
                 combined_page_data = "The content provided from URLs does not contain relevant information about crypto."
 
             # Save the combined content to a file
-            with open('combined_file.txt', 'w', encoding='UTF-8') as file:
-                file.write(combined_page_data.strip())
+            # with open('combined_file.txt', 'w', encoding='UTF-8') as file:
+            #     file.write(combined_page_data.strip())
 
             # Prepare the prompt and generate a response
             prompt = prompt_template.format(
