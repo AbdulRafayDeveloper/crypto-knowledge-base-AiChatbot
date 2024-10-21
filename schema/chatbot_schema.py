@@ -31,7 +31,7 @@ class ChatbotRequest(BaseModel):
         "https://solar-studios.gitbook.io/solar-studios/what-is-v3"
     ]
     query: str
-    message: Optional[str] = None  # Optional for balance checking
+    message: str
 
 
 class ChatbotResponse(BaseModel):
