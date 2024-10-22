@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from routers.api import routers
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 # Initialize the FastAPI app first
 app = FastAPI()
@@ -15,10 +16,17 @@ origins = [
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # You can allow specific origins or use ["*"] to allow all origins
+    # You can allow specific origins or use ["*"] to allow all origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],   # Allow all headers (like Authorization, Content-Type, etc.)
+    # Allow all headers (like Authorization, Content-Type, etc.)
+    allow_headers=["*"],
 )
 
+# Include your router
 app.include_router(routers)
+
+# Entry point for running the FastAPI application
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

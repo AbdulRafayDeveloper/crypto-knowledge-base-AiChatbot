@@ -1,20 +1,68 @@
-from typing import List, Dict, Any
-from dotenv import load_dotenv
-from fastapi.responses import JSONResponse
-from fastapi import HTTPException, status
-import requests
-from services.groq_llm import llm
-from langchain_core.tools import tool
 import os,re
+import requests
+from dotenv import load_dotenv
+from services.groq_llm import llm
+from typing import List, Dict, Any
+from langchain_core.tools import tool
+from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
 from services.prompts import prompt_template
+from langchain_community.document_loaders import TextLoader
 load_dotenv()
-from langchain_community.document_loaders import WebBaseLoader
 WALLET_ADDRESS = os.getenv("WALLET_ADDRESS")
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
+
+@tool
+def process_and_respond_from_file(query: str) -> str:
+    """Loads data from a text file using TextLoader, processes it, and generates a response 
+    to a user query based on the loaded data.
+
+    Args:
+        query (str): The user query for which a response is generated.
+
+    Returns:
+        str: The generated response or an error message if an exception occurs.
+    """
+    try:
+        # Use absolute path to avoid any path issues
+        loader = TextLoader("combined_file.txt",encoding="utf-8")
+        documents = loader.load()
+        combined_page_data = "".join([doc.page_content for doc in documents])
+
+        # Debugging output to check if the file content is loaded correctly
+        print(f"Loaded file data: {combined_page_data}")
+
+        # If the file is empty or doesn't contain relevant data, use a fallback
+        if not combined_page_data.strip():
+            return "The file is empty or does not contain any relevant data."
+
+        # Prepare the prompt using the combined data and the user query
+        prompt = prompt_template.format(
+            page_data=combined_page_data.strip(), question=query)
+
+        # Debugging output to check the prompt before sending to LLM
+        # print(f"Prompt sent to LLM: {prompt}")
+
+        # Generate a response using the LLM
+        response = llm.invoke(prompt)
+
+        # Check if the response from the LLM is valid
+        if response and response.content:
+            clean_response = re.sub(r'\n+', ' ', response.content)
+            print(f"Response from LLM: {clean_response}")
+            return clean_response
+        else:
+            return "The LLM did not return a valid response."
+
+    except Exception as e:
+        print("An unexpected error occurred: ", e)  # Log the error
+        return str(e)  # Return the error message
+
+
 # This tool is also working
 @tool
-def get_single_address_balance(address: str) -> Dict[str, Any]:
+def get_single_address_balance(address: str=None) -> Dict[str, Any]:
     """
     Fetch the Ethereum balance for a single given address provided by the user using the Etherscan API.
 
@@ -81,7 +129,7 @@ def get_multiple_address_balance(addresses: List[str]) -> Dict[str, Any]:
         )
 # tool for getting the normal transcatoion list.
 @tool
-def normal_transcation_list(address: str) -> Dict[str, Any]:
+def normal_transcation_list(address: str=None) -> Dict[str, Any]:
     """
     Fetch the Normal Transcation by balance for a  given address by user in single call using the Etherscan API.
 
@@ -110,7 +158,7 @@ def normal_transcation_list(address: str) -> Dict[str, Any]:
 
 
 @tool
-def get_internal_transactions_by_address(address: str) -> Dict[str, Any]:
+def get_internal_transactions_by_address(address: str=None) -> Dict[str, Any]:
     """
     Fetch a list of internal transactions for a given Ethereum address using the Etherscan API.
 
@@ -151,7 +199,7 @@ def get_internal_transactions_by_address(address: str) -> Dict[str, Any]:
 
 # This tool is also working.
 @tool
-def get_internal_transactions_by_hash(txhash: str):
+def get_internal_transactions_by_hash(txhash: str=None):
     """
     Fetch a list of internal transactions for a given Ethereum transaction hash using the Etherscan API.
 
@@ -496,6 +544,7 @@ def check_transaction_receipt_status(tx_hash) -> Dict[str, Any]:
 
 # bind tools with LLM
 tools = [
+    process_and_respond_from_file,
     get_single_address_balance,
     get_multiple_address_balance,
     normal_transcation_list,
@@ -507,10 +556,6 @@ tools = [
     get_erc721_token_transfer_events,
     check_contract_execution_status,
     check_transaction_receipt_status
-    
-
-
-
 ]
 llm_with_tools = llm.bind_tools(tools)
 
