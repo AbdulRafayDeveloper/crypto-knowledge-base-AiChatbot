@@ -14,12 +14,13 @@ ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
 
 @tool
-def process_and_respond_from_file(query: str) -> str:
-    """Loads data from a text file using TextLoader, processes it, and generates a response 
+def process_and_respond_from_file(query: str) -> Any:
+    """
+    Loads data from a text file using TextLoader, processes it, and generates a response 
     to a user query based on the loaded data.
 
     Args:
-        query (str): The user query for which a response is generated.
+        query: str The user query for which a response is generated.
 
     Returns:
         str: The generated response or an error message if an exception occurs.
@@ -42,7 +43,7 @@ def process_and_respond_from_file(query: str) -> str:
             page_data=combined_page_data.strip(), question=query)
 
         # Debugging output to check the prompt before sending to LLM
-        # print(f"Prompt sent to LLM: {prompt}")
+        print(f"Prompt sent to LLM: {prompt}")
 
         # Generate a response using the LLM
         response = llm.invoke(prompt)

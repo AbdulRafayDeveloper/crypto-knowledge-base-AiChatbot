@@ -46,12 +46,10 @@ async def chat(request: ChatbotRequest):
         # Invoke the agent executor to handle the AI response
         result = agent_executor.invoke({"input": user_input})
 
-        # Debug print statement for checking the result
-        print(f"Working from routers: {result}")
-
         # Ensure the response is a string or a dictionary with 'output'
         if isinstance(result, dict) and 'output' in result:
             response_str = result['output']
+            print(f"Response: {response_str}")
         elif isinstance(result, str):
             response_str = result
         else:
@@ -60,13 +58,10 @@ async def chat(request: ChatbotRequest):
         # Add the current interaction to memory
         memory.add_message(request.message, response_str)
         memory.get_context()
+        print("Response String: {response_str}")
 
         # Return the response to the FastAPI endpoint
         return ChatbotResponse(response=response_str)
-
-    except HTTPException as e:
-        # Propagate HTTPExceptions
-        raise e
 
     except Exception as e:
         # Handle unexpected errors and return a 500 status code
