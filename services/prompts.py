@@ -12,6 +12,7 @@ prompt_template = PromptTemplate.from_template(
     {page_data}
 
     Instructions:
+    0. No preemble text in the response
     1. First, attempt to answer the user's query by extracting the most relevant information from the provided text.
     2. If the answer is not available in the document, respond using your own knowledge in a detailed, precise, and informative way.
     3. Ensure that the response is clear, focused, and follows the user's question directly.

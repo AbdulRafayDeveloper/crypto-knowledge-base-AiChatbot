@@ -25,6 +25,8 @@ def process_and_respond_from_file(query: str) -> str:
     Returns:
         str: The generated response or an error message if an exception occurs.
     """
+    
+    
     try:
         # Use absolute path to avoid any path issues
         loader = TextLoader("combined_file.txt",encoding="utf-8")
