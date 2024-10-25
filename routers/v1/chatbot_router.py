@@ -3,7 +3,7 @@ from schema.chatbot_schema import ChatbotRequest, ChatbotResponse
 from services.prompts import prompt
 from services.api_chatbot import llm_with_tools, tools
 from langchain.agents import AgentExecutor, create_tool_calling_agent
-
+import re
 # Create the agent and executor for handling AI responses
 agents = create_tool_calling_agent(llm_with_tools, tools, prompt=prompt)
 agent_executor = AgentExecutor(agent=agents, tools=tools, verbose=True)
@@ -46,19 +46,26 @@ async def chat(request: ChatbotRequest):
         # Invoke the agent executor to handle the AI response
         result = agent_executor.invoke({"input": user_input})
 
-        # Ensure the response is a string or a dictionary with 'output'
+        # Additional condition for handling responses from the agent executor
         if isinstance(result, dict) and 'output' in result:
             response_str = result['output']
             print(f"Response: {response_str}")
         elif isinstance(result, str):
             response_str = result
+        elif isinstance(result, dict) and 'error' in result:
+            # New condition: Handle an 'error' field in the result
+            response_str = f"Error received from LLM: {result['error']}"
+            print(f"Error Response: {response_str}")
         else:
             raise ValueError("Unexpected response format from agent_executor")
 
         # Add the current interaction to memory
         memory.add_message(request.message, response_str)
         memory.get_context()
-        print("Response String: {response_str}")
+        print(f"Response String: {response_str}")
+        # response_str = re.sub(
+        #     r'Based on the output from the tool call id "[^"]*", ', '', response_str)
+        # print(f"Filtered Response: {response_str}")
 
         # Return the response to the FastAPI endpoint
         return ChatbotResponse(response=response_str)

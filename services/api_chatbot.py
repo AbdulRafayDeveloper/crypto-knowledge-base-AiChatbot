@@ -14,7 +14,7 @@ ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
 
 @tool
-def process_and_respond_from_file(query: str) -> Any:
+def process_and_respond_from_file(query: str) -> str:
     """
     Loads data from a text file using TextLoader, processes it, and generates a response 
     to a user query based on the loaded data.
