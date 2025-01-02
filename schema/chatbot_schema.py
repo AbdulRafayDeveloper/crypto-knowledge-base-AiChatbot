@@ -32,8 +32,11 @@ from typing import List, Optional
 #     ]
 #     query: str
 #     message: str
+
+
+
 class ChatbotRequest(BaseModel):
-    message: str = "Loads data from a text file using TextLoader processes it and generates a response to a user query based on the loaded data and tell"
+    message: str
 
 
 class ChatbotResponse(BaseModel):

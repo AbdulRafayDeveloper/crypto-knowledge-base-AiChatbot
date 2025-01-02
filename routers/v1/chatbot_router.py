@@ -3,7 +3,6 @@ from schema.chatbot_schema import ChatbotRequest, ChatbotResponse
 from services.prompts import prompt
 from services.api_chatbot import llm_with_tools, tools
 from langchain.agents import AgentExecutor, create_tool_calling_agent
-import re
 # Create the agent and executor for handling AI responses
 agents = create_tool_calling_agent(llm_with_tools, tools, prompt=prompt)
 agent_executor = AgentExecutor(agent=agents, tools=tools, verbose=True)
@@ -63,11 +62,6 @@ async def chat(request: ChatbotRequest):
         memory.add_message(request.message, response_str)
         memory.get_context()
         print(f"Response String: {response_str}")
-        # response_str = re.sub(
-        #     r'Based on the output from the tool call id "[^"]*", ', '', response_str)
-        # print(f"Filtered Response: {response_str}")
-
-        # Return the response to the FastAPI endpoint
         return ChatbotResponse(response=response_str)
 
     except Exception as e:
